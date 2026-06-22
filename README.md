@@ -88,6 +88,16 @@ To create a short demo GIF:
 ![Demo](demo.gif)
 ```
 
+## Screenshots
+
+## Dashboard
+
+![Dashboard](screenshots/dashboard.png)
+
+## Dosha Analysis
+
+![Dosha Analysis](screenshots/dosha_analysis.png)
+
 ## Training and artifacts
 
 If you want to retrain the models, run:
