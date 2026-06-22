@@ -1,0 +1,1 @@
+# Ayu-Pulse---Nadi-Parikshan-Diagnosis-
