@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Smart Pulse Monitoring</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+    height: 100%;
+    overflow: hidden;
+    color: white;
+  }
+
+  #bg-video {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    min-width: 100%;
+    min-height: 100%;
+    object-fit: cover;
+    filter: brightness(0.5);
+    animation: videoPulse 8s ease-in-out infinite;
+  }
+
+  @keyframes videoPulse {
+    0%, 100% { filter: brightness(0.5); }
+    50% { filter: brightness(0.55); }
+  }
+
+  /* Floating particles */
+  .floating-particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  .particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: rgba(0,255,255,0.4);
+    border-radius: 50%;
+    animation: floatParticle 15s infinite ease-in-out;
+    box-shadow: 0 0 10px rgba(0,255,255,0.5);
+  }
+
+  @keyframes floatParticle {
+    0% {
+      transform: translateY(100vh) translateX(0) scale(0);
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    90% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(-100vh) translateX(100px) scale(1);
+      opacity: 0;
+    }
+  }
+
+  /* Full-screen overlay with centered content */
+  .overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 85vw;                /* wider overlay */
+    height: 50vh;               /* taller overlay */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: rgba(20, 20, 20, 0.5);
+    border-radius: 25px;
+    padding: 40px;
+    backdrop-filter: blur(15px);
+    box-shadow: 0 0 50px rgba(0, 255, 255, 0.25);
+    text-align: center;
+    animation: fadeIn 2s ease, floatOverlay 4s ease-in-out infinite;
+    overflow: hidden;
+    transition: all 0.4s ease;
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    z-index: 1;
+  }
+
+  .overlay::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #00ffff, #0077ff, #00ffff);
+    border-radius: 25px;
+    opacity: 0;
+    z-index: -1;
+    transition: opacity 0.4s ease;
+    animation: borderGlow 3s ease-in-out infinite;
+  }
+
+  .overlay:hover {
+    transform: translate(-50%, -50%) scale(1.02);
+    box-shadow: 0 0 70px rgba(0, 255, 255, 0.4), 0 0 100px rgba(0, 255, 255, 0.2);
+  }
+
+  .overlay:hover::before {
+    opacity: 0.3;
+  }
+
+  @keyframes floatOverlay {
+    0%, 100% { transform: translate(-50%, -50%) translateY(0px); }
+    50% { transform: translate(-50%, -50%) translateY(-10px); }
+  }
+
+  @keyframes borderGlow {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 0.2; }
+  }
+
+  /* Larger, more futuristic title */
+  h1 {
+    font-size: 4.5rem; /* Increased from 3rem */
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+    background: linear-gradient(90deg, #00ffff, #0077ff, #00ffff);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+    animation: gradientShift 3s ease infinite, titleFloat 3.5s ease-in-out infinite;
+    position: relative;
+    transition: all 0.3s ease;
+  }
+
+  h1:hover {
+    transform: scale(1.05);
+    text-shadow: 0 0 40px rgba(0, 255, 255, 0.6);
+  }
+
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% center; }
+    50% { background-position: 100% center; }
+  }
+
+  @keyframes titleFloat {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+  }
+
+  /* Enhanced subheading for readability */
+  h2 {
+    font-weight: 300;
+    font-size: 1.8rem; /* Increased from 1.4rem */
+    margin-bottom: 50px;
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+    animation: subtitleFloat 3.8s ease-in-out infinite;
+    transition: all 0.3s ease;
+  }
+
+  h2:hover {
+    transform: scale(1.05);
+    text-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 1);
+  }
+
+  @keyframes subtitleFloat {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-4px); }
+  }
+
+  .start-btn {
+    display: inline-block;
+    margin-top: 20px;
+    margin-bottom: 50px;
+    padding: 20px 50px 20px 50px;
+    font-size: 30px;
+    font-weight: 600;
+    background: linear-gradient(135deg, #00ffff, #0077ff);
+    color: black;
+    border-radius: 30px;
+    text-decoration: none;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 8px 25px rgba(0, 255, 255, 0.4);
+    position: relative;
+    overflow: hidden;
+    animation: buttonFloat 2.8s ease-in-out infinite;
+  }
+
+  .start-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+
+  .start-btn:hover::before {
+    width: 400px;
+    height: 400px;
+  }
+
+  .start-btn:hover {
+    transform: translateY(-8px) scale(1.15);
+    background: linear-gradient(135deg, #00ffff, #00aaff);
+    box-shadow: 0 15px 40px rgba(0, 255, 255, 0.6), 0 0 30px rgba(0, 255, 255, 0.4);
+  }
+
+  .start-btn:active {
+    transform: translateY(-4px) scale(1.1);
+  }
+
+  @keyframes buttonFloat {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translate(-50%, -55%); }
+    to { opacity: 1; transform: translate(-50%, -50%); }
+  }
+
+  </style>
+</head>
+<body>
+  <video autoplay muted loop id="bg-video">
+    <source src="{{ url_for('static', filename='vid1.mp4') }}" type="video/mp4">
+  </video>
+
+  <div class="floating-particles" id="particles"></div>
+
+  <div class="overlay">
+    <h1>Intelligent IoT Health Dashboard for Nadi-Parikshan</h1>
+    <h2>Real-Time Multi-Sensor BPM Monitoring using AI</h2>
+    <a href="{{ url_for('dashboard') }}" class="start-btn">Start Here</a>
+  </div>
+
+  <script>
+    // Create floating particles
+    function createParticles() {
+      const particlesContainer = document.getElementById('particles');
+      const particleCount = 25;
+
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 15 + 's';
+        particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+        particlesContainer.appendChild(particle);
+      }
+    }
+
+    // Initialize particles on page load
+    createParticles();
+  </script>
+</body>
+</html>

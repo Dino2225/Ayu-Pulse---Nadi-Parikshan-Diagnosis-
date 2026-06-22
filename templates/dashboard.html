@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Real-Time Nadi Parikshan Dashboard</title>
+  <script src="{{ url_for('static', filename='chart.js') }}"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap">
+  <style>
+    :root{
+      --card-bg: rgba(20,30,35,0.6);
+      --card-accent: rgba(127,255,212,0.25);
+      --glass-bg: rgba(10,15,20,0.7);
+      --accent: #00ffff;
+      --muted: rgba(255,255,255,0.15);
+      --overlay-pad-vertical: 30px;
+      --overlay-pad-horizontal: 4%;
+      --card-gap: 20px;
+      --card-min: 260px; /* allows 3 columns on wide screens but shrinks */
+      --card-max: 420px;
+    }
+
+        .counter-box{
+      width: 100%;
+      max-width: 1200px;
+      background: rgba(10,20,25,0.8);
+      border: 1px solid #00ffff;
+      text-align: center;
+      padding: 10px;
+      border-radius: 14px;
+      font-size: 1.3rem;
+      color: #00ffff;
+      animation: floatUpDown 3s ease-in-out infinite;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .counter-box::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(0,255,255,0.1), transparent);
+      animation: shimmer 3s infinite;
+    }
+
+    .counter-box:hover {
+      transform: scale(1.02);
+      box-shadow: 0 0 30px rgba(0,255,255,0.4);
+      border-color: #00ffff;
+    }
+
+    @keyframes floatUpDown {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+      100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+    }
+
+    .action-buttons{
+      width: 100%;
+      max-width: 1200px;
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+    }
+
+    .action-buttons button{
+      padding: 12px 32px;
+      background: linear-gradient(135deg, #00ffff, #0077ff);
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      color: black;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 4px 15px rgba(0,255,255,0.3);
+      animation: floatButton 2.5s ease-in-out infinite;
+    }
+
+    .action-buttons button:nth-child(1) {
+      animation-delay: 0s;
+    }
+
+    .action-buttons button:nth-child(2) {
+      animation-delay: 0.3s;
+    }
+
+    .action-buttons button::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    .action-buttons button:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+
+    .action-buttons button:hover {
+      transform: translateY(-5px) scale(1.05);
+      box-shadow: 0 8px 25px rgba(0,255,255,0.5);
+      background: linear-gradient(135deg, #00ffff, #00aaff);
+    }
+
+    .action-buttons button:active {
+      transform: translateY(-2px) scale(1.02);
+    }
+
+    @keyframes floatButton {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+
+    .modal{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 20;
+    }
+
+    .modal-content{
+      background: rgba(20,30,35,0.95);
+      padding: 25px;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 800px;
+      max-height: 80vh;
+      overflow-y: auto;
+      animation: modalFloat 3s ease-in-out infinite;
+      transition: all 0.4s ease;
+      border: 1px solid rgba(0,255,255,0.3);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(0,255,255,0.2);
+    }
+
+    .modal-content:hover {
+      transform: scale(1.02);
+      box-shadow: 0 25px 70px rgba(0,0,0,0.6), 0 0 50px rgba(0,255,255,0.3);
+    }
+
+    @keyframes modalFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-5px); }
+    }
+
+    .modal-content input, select{
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      box-sizing: border-box;
+      background: rgba(10,15,20,0.8);
+      border: 1px solid rgba(0,255,255,0.3);
+      border-radius: 8px;
+      color: #e8faff;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .modal-content input:focus, select:focus {
+      outline: none;
+      border-color: #00ffff;
+      box-shadow: 0 0 15px rgba(0,255,255,0.3);
+      transform: scale(1.02);
+      background: rgba(10,15,20,0.9);
+    }
+
+    .modal-content input:hover, select:hover {
+      border-color: rgba(0,255,255,0.5);
+    }
+
+    .modal-content button{
+      width: 100%;
+      padding: 12px;
+      margin-top: 15px;
+      background: linear-gradient(135deg, #00ffff, #0077ff);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      color: black;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 4px 15px rgba(0,255,255,0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .modal-content button::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    .modal-content button:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+
+    .modal-content button:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 8px 25px rgba(0,255,255,0.5);
+      background: linear-gradient(135deg, #00ffff, #00aaff);
+    }
+
+    .modal-content button:active {
+      transform: translateY(-1px) scale(1);
+    }
+
+    table{
+      width:100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      font-size: 0.9rem;
+    }
+
+    th, td{
+      border:1px solid #00ffff;
+      padding:8px;
+      text-align: left;
+    }
+
+    th{
+      background: rgba(0,255,255,0.1);
+      color: #00ffff;
+      font-weight: 600;
+    }
+
+    td{
+      color: #e8faff;
+    }
+
+    tr{
+      transition: all 0.3s ease;
+    }
+
+    tr:hover{
+      background: rgba(0,255,255,0.1);
+      transform: scale(1.02);
+      box-shadow: 0 4px 15px rgba(0,255,255,0.2);
+    }
+
+    td:hover {
+      color: #00ffff;
+      text-shadow: 0 0 10px rgba(0,255,255,0.5);
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      color: #e8faff;
+      background: rgba(0,0,0,0.9);
+      overflow-x: hidden;  /* Prevent horizontal scroll */
+      scroll-behavior: smooth;
+      height: 100%;
+    }
+
+    #bg-video {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: brightness(0.35);
+      z-index: -2;
+      animation: videoPulse 8s ease-in-out infinite;
+    }
+
+    @keyframes videoPulse {
+      0%, 100% { filter: brightness(0.35); }
+      50% { filter: brightness(0.4); }
+    }
+
+    /* Floating particles background */
+    .floating-particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: rgba(0,255,255,0.4);
+      border-radius: 50%;
+      animation: floatParticle 15s infinite ease-in-out;
+      box-shadow: 0 0 10px rgba(0,255,255,0.5);
+    }
+
+    @keyframes floatParticle {
+      0% {
+        transform: translateY(100vh) translateX(0) scale(0);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-100vh) translateX(100px) scale(1);
+        opacity: 0;
+      }
+    }
+
+    /* overlay contains everything so footer can be inside it */
+    .overlay {
+      width: 100%;
+      min-height: 100vh;
+      padding: var(--overlay-pad-vertical) var(--overlay-pad-horizontal);
+      box-sizing: border-box;
+      backdrop-filter: blur(12px);
+      background: linear-gradient(135deg, rgba(10,20,25,0.5), rgba(0,10,15,0.6));
+      box-shadow: inset 0 0 80px rgba(0,255,255,0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      align-items: center;
+    }
+
+    /* Title container with box shadow */
+    .title-container{
+      width: 100%;
+      max-width: 1200px;
+      background: rgba(15,20,25,0.55);
+      border-radius: 14px;
+      padding: 14px 22px;
+      box-shadow: 0 8px 30px rgba(0,255,255,0.06), 0 2px 8px rgba(0,0,0,0.6);
+      border: 0.5px solid var(--card-accent);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      animation: floatTitle 3.5s ease-in-out infinite;
+      transition: all 0.4s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .title-container::after {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      background: linear-gradient(45deg, #00ffff, #0077ff, #00ffff);
+      border-radius: 14px;
+      opacity: 0;
+      z-index: -1;
+      transition: opacity 0.4s ease;
+      animation: borderGlow 3s ease-in-out infinite;
+    }
+
+    .title-container:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px rgba(0,255,255,0.15), 0 5px 15px rgba(0,0,0,0.7);
+    }
+
+    .title-container:hover::after {
+      opacity: 0.3;
+    }
+
+    @keyframes floatTitle {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-5px); }
+    }
+
+    @keyframes borderGlow {
+      0%, 100% { opacity: 0; }
+      50% { opacity: 0.2; }
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 3rem;
+      margin: 0;
+      background: linear-gradient(90deg, #00ffff, #0077ff, #00ffff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: pulseGlow 4s infinite;
+      line-height: 1;
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { text-shadow: 0 0 15px #00ffff; }
+      50% { text-shadow: 0 0 40px #0077ff; }
+    }
+
+    /* Charts grid - responsive and equal height cards */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(var(--card-min), 1fr));
+      gap: var(--card-gap);
+      width: 100%;
+      max-width: 1200px;
+      grid-auto-rows: 1fr; /* equal height rows */
+      align-items: stretch;
+      margin-bottom: 0;
+    }
+
+    .chart-card {
+      position: relative;
+      width: 100%;
+      max-width: var(--card-max);
+      background: var(--card-bg);
+      border-radius: 18px;
+      border: 0.5px inset var(--card-accent);
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0,255,255,0.06);
+      transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      backdrop-filter: blur(10px);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      box-sizing: border-box;
+      min-height: 340px;
+      animation: floatCard 4s ease-in-out infinite;
+    }
+
+    .chart-card:nth-child(1) {
+      animation-delay: 0s;
+    }
+
+    .chart-card:nth-child(2) {
+      animation-delay: 0.4s;
+    }
+
+    .chart-card:nth-child(3) {
+      animation-delay: 0.8s;
+    }
+
+    @keyframes floatCard {
+      0%, 100% { transform: translateY(0px) rotateY(0deg); }
+      50% { transform: translateY(-12px) rotateY(2deg); }
+    }
+
+    /* Centered rotating overlay (mirror-like) */
+    .chart-card::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%,-50%);
+      width: 220%;
+      height: 220%;
+      border-radius: 30%;
+      background: conic-gradient(from 180deg, transparent 10%, rgba(0,255,255,0.06), transparent 70%);
+      animation: rotate 6s linear infinite;
+      z-index: 0;
+      pointer-events: none;
+      filter: blur(12px) saturate(1.1);
+      transform-origin: center center;
+      mix-blend-mode: overlay;
+    }
+    @keyframes rotate {
+      0% { transform: translate(-50%,-50%) rotate(0deg); }
+      100% { transform: translate(-50%,-50%) rotate(360deg); }
+    }
+
+    .chart-card:hover {
+      transform: translateY(-15px) rotateY(5deg) scale(1.02);
+      box-shadow: 0 25px 60px rgba(0,255,255,0.25), 0 0 40px rgba(0,255,255,0.15);
+      border-color: rgba(0,255,255,0.6);
+      background: rgba(20,30,35,0.8);
+    }
+
+    .chart-card:hover::before {
+      animation-duration: 3s;
+      filter: blur(8px) saturate(1.3);
+    }
+
+    .chart-title {
+      text-align: center;
+      font-size: 1.2rem;
+      margin-bottom: 8px;
+      color: var(--accent);
+      position: relative;
+      z-index: 2;
+      transition: all 0.3s ease;
+      text-shadow: 0 0 10px rgba(0,255,255,0.3);
+    }
+
+    .chart-card:hover .chart-title {
+      transform: scale(1.05);
+      text-shadow: 0 0 20px rgba(0,255,255,0.6);
+      color: #00ffff;
+    }
+
+    /* ensure canvas sits above overlay and has consistent height */
+    .chart-body {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      flex: 1 1 auto;
+      display: flex;
+      align-items: center;
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 220px !important; /* consistent chart height */
+      position: relative;
+      z-index: 2;
+      max-height: 260px;
+    }
+
+    /* Prediction Section */
+    .prediction-card {
+      background: var(--glass-bg);
+      width: 100%;
+      max-width: 1200px;
+      border-radius: 18px;
+      border: 0.5px inset var(--card-accent);
+      box-shadow: 0 12px 40px rgba(0,255,255,0.07);
+      padding: 22px;
+      text-align: center;
+      backdrop-filter: blur(12px);
+      z-index: 1;
+      animation: fadeIn 1.2s ease, floatPrediction 3.8s ease-in-out infinite;
+      box-sizing: border-box;
+      transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .prediction-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(0,255,255,0.1), transparent);
+      transition: left 0.6s ease;
+    }
+
+    .prediction-card:hover::before {
+      left: 100%;
+    }
+
+    .prediction-card:hover {
+      transform: translateY(-8px) scale(1.01);
+      box-shadow: 0 20px 50px rgba(0,255,255,0.15), 0 0 30px rgba(0,255,255,0.1);
+      border-color: rgba(0,255,255,0.5);
+    }
+
+    @keyframes floatPrediction {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+
+    .prediction-title {
+      font-size: 1.6rem;
+      color: var(--accent);
+      margin-bottom: 12px;
+      transition: all 0.3s ease;
+      text-shadow: 0 0 15px rgba(0,255,255,0.4);
+    }
+
+    .prediction-card:hover .prediction-title {
+      transform: scale(1.05);
+      text-shadow: 0 0 25px rgba(0,255,255,0.7);
+    }
+
+    .prediction-content {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: stretch;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .prediction-text {
+      flex: 1 1 480px;
+      font-size: 1rem;
+      line-height: 1.5;
+      max-width: 740px;
+      color: #e0faff;
+      text-align: left;
+      padding: 6px 10px;
+    }
+
+    .prediction-accuracy {
+      flex: 0 1 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 180px;
+    }
+
+    /* New info-card for predicted health issue details */
+    .info-card {
+      width: 100%;
+      max-width: 1200px;
+      background: rgba(12,18,22,0.65);
+      border-radius: 16px;
+      border: 0.5px solid var(--card-accent);
+      padding: 18px;
+      box-shadow: 0 8px 30px rgba(0,255,255,0.05);
+      color: #dffaff;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      animation: floatInfo 4.2s ease-in-out infinite;
+      transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .info-card::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(0,255,255,0.1) 0%, transparent 70%);
+      animation: pulseGlow 4s ease-in-out infinite;
+    }
+
+    .info-card:hover {
+      transform: translateY(-8px) scale(1.01);
+      box-shadow: 0 15px 40px rgba(0,255,255,0.12), 0 0 25px rgba(0,255,255,0.08);
+      border-color: rgba(0,255,255,0.6);
+      background: rgba(12,18,22,0.75);
+    }
+
+    @keyframes floatInfo {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-7px); }
+    }
+
+    .info-card h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      color: var(--accent);
+      position: relative;
+      z-index: 1;
+      transition: all 0.3s ease;
+      text-shadow: 0 0 10px rgba(0,255,255,0.3);
+    }
+
+    .info-card:hover h3 {
+      transform: scale(1.05);
+      text-shadow: 0 0 20px rgba(0,255,255,0.6);
+    }
+
+    .info-card p {
+      margin: 0;
+      font-size: 0.98rem;
+      color: #dffaff;
+    }
+
+    /* Footer container with subtle animation */
+    .footer-container {
+      width: 100%;
+      max-width: 1200px;
+      background: rgba(8,12,15,0.55);
+      border-radius: 12px;
+      padding: 12px 16px;
+      box-shadow: 0 6px 24px rgba(0,255,255,0.03);
+      border: 0.5px solid rgba(127,255,212,0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-sizing: border-box;
+      animation: floatFooter 6s infinite ease-in-out;
+    }
+    @keyframes floatFooter {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+      100% { transform: translateY(0); }
+    }
+
+    /* Responsive tweaks */
+    @media (max-width: 1100px) {
+      :root { --card-max: 100%; }
+      canvas { height: 200px !important; }
+      .chart-card { min-height: 300px; }
+      h1 { font-size: 2.5rem; }
+    }
+    @media (max-width: 768px) {
+      .overlay { padding: 18px 4%; gap: 16px; }
+      h1 { font-size: 1.95rem; }
+      .charts-grid { gap: 14px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+      canvas { height: 180px !important; }
+      .chart-card { min-height: 260px; padding: 14px; border-radius: 14px; }
+      .prediction-content { flex-direction: column; align-items: stretch; }
+      .prediction-text { order: 2; }
+      .prediction-accuracy { order: 1; margin-bottom: 6px; justify-content: flex-start; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+  </style>
+</head>
+<body>
+
+  <video autoplay muted loop id="bg-video">
+    <source src="{{ url_for('static', filename='vid1.mp4') }}" type="video/mp4">
+  </video>
+
+  <div class="floating-particles" id="particles"></div>
+
+  <div class="overlay">
+    <div class="title-container">
+      <h1>AI-Driven Nadi Parikshan Dashboard</h1>
+    </div>
+    <div class="counter-box">
+      Analysis Timer: <span id="counter">60</span> seconds
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-title">Vata Nadi (Sensor 1)</div>
+        <div class="chart-body"><canvas id="chart1"></canvas></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">Pitta Nadi (Sensor 2)</div>
+        <div class="chart-body"><canvas id="chart2"></canvas></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">Kapha Nadi (Sensor 3)</div>
+        <div class="chart-body"><canvas id="chart3"></canvas></div>
+      </div>
+    </div>
+
+    <div class="prediction-card">
+      <div class="prediction-title">Real-Time Health Analysis</div>
+      <div class="prediction-content">
+        <div class="prediction-text" id="predictionText">
+          Awaiting sensor initialization...
+        </div>
+        <div class="prediction-accuracy">
+          <canvas id="accuracyChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEW: predicted health issue container -->
+    <div class="info-card" id="predictedInfoCard">
+      <h3>Predicted Health Issue</h3>
+      <p id="predictedInfo">No predictions yet. Prediction details will appear here in real-time.</p>
+    </div>
+
+    <!-- Dosha Balance Visualization -->
+    <div class="info-card" id="doshaCard" style="display:none">
+      <h3>Dosha Balance Analysis</h3>
+      <div id="doshaContent">
+        <div style="display: flex; justify-content: space-around; margin: 15px 0;">
+          <div style="text-align: center;">
+            <div style="font-size: 1.5rem; color: #ff4d4d; font-weight: bold;" id="vataPercent">0%</div>
+            <div style="color: #ff4d4d;">Vata</div>
+          </div>
+          <div style="text-align: center;">
+            <div style="font-size: 1.5rem; color: #00ff99; font-weight: bold;" id="pittaPercent">0%</div>
+            <div style="color: #00ff99;">Pitta</div>
+          </div>
+          <div style="text-align: center;">
+            <div style="font-size: 1.5rem; color: #00ffff; font-weight: bold;" id="kaphaPercent">0%</div>
+            <div style="color: #00ffff;">Kapha</div>
+          </div>
+        </div>
+        <div id="doshaInterpretation" style="margin-top: 10px; font-size: 0.9rem; line-height: 1.6;"></div>
+      </div>
+    </div>
+
+    <!-- Graph Pattern Dosha Analysis -->
+    <div class="info-card" id="graphDoshaCard" style="display:none">
+      <h3>Dosha Type from Graph Patterns</h3>
+      <div id="graphDoshaContent">
+        <div style="text-align: center; margin: 15px 0;">
+          <div style="font-size: 2rem; color: #00ffff; font-weight: bold; margin-bottom: 10px;" id="graphDoshaType">Analyzing...</div>
+          <div style="font-size: 1rem; color: #00ffff;" id="graphDoshaPattern">Pattern: --</div>
+          <div style="font-size: 0.9rem; color: rgba(255,255,255,0.7); margin-top: 5px;" id="graphDoshaConfidence">Confidence: --</div>
+        </div>
+        <div id="graphDoshaInterpretation" style="margin-top: 15px; font-size: 0.9rem; line-height: 1.6;"></div>
+        <div id="graphPatternDetails" style="margin-top: 15px; font-size: 0.85rem; line-height: 1.5; color: rgba(255,255,255,0.8);"></div>
+      </div>
+    </div>
+    <div class="action-buttons">
+      <button onclick="restartAnalysis()">Analyze Again</button>
+      <button onclick="openHistory()">Last Predictions</button>
+    </div>
+
+
+    <!-- Footer inside a container with animation -->
+    <div class="footer-container" role="contentinfo">
+      <div>
+        <small>© Nadi Parikshan · Real-Time AI Dashboard</small>
+      </div>
+      <div>
+        <small>Last update: <span id="lastUpdate">--:--:--</span></small>
+      </div>
+    </div>
+  </div>
+  <div class="modal" id="registerModal">
+    <div class="modal-content">
+      <button id="closeRegister" style="position:absolute; right:12px; top:10px; background:transparent; border:none; color:#fff; font-size:1.4rem; cursor:pointer;">×</button>
+      <h3>Patient Registration</h3>
+      <input id="pname" placeholder="Full Name">
+      <select id="pgender">
+        <option>Male</option>
+        <option>Female</option>
+      </select>
+      <input id="page" placeholder="Age">
+      <button onclick="startAnalysis()">Start Analysis</button>
+    </div>
+  </div>
+
+  <div class="modal" id="historyModal" style="display:none">
+    <div class="modal-content">
+      <h3>Last Predictions</h3>
+      <table id="historyTable"></table>
+      <button onclick="closeHistory()">Close</button>
+    </div>
+  </div>
+
+  <script>
+    const colors = ['#ff4d4d', '#00ff99', '#00ffff'];
+
+    function createChart(id, color, label) {
+      return new Chart(document.getElementById(id), {
+        type: 'line',
+        data: { labels: [], datasets: [{ label, borderColor: color, data: [], tension: 0.35, borderWidth: 2, pointRadius: 0, fill: false }] },
+        options: {
+          animation: { duration: 0 },
+          maintainAspectRatio: false,
+          scales: {
+            x: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            y: { min: 40, max: 180, ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+          },
+          plugins: { legend: { labels: { color: '#00ffff' } } }
+        }
+      });
+    }
+
+    const charts = [
+      createChart('chart1', colors[0], 'Vata'),
+      createChart('chart2', colors[1], 'Pitta'),
+      createChart('chart3', colors[2], 'Kapha')
+    ];
+
+    const accChart = new Chart(document.getElementById('accuracyChart'), {
+      type: 'doughnut',
+      data: { labels: ['Accuracy', 'Deviation'], datasets: [{ data: [0, 100], backgroundColor: ['#00ffff', 'rgba(255,255,255,0.15)'], borderWidth: 0 }] },
+      options: { cutout: '70%', plugins: { legend: { display: false } }, maintainAspectRatio: false }
+    });
+
+    // Stable DOM references (avoid relying on implicit global id variables)
+    const pname = document.getElementById('pname');
+    const pgender = document.getElementById('pgender');
+    const page = document.getElementById('page');
+    const historyTable = document.getElementById('historyTable');
+    const historyModal = document.getElementById('historyModal');
+    const registerModal = document.getElementById('registerModal');
+
+    // ✅ PATIENT + TIMER + DATABASE
+    let counter = 60;
+    let timer;
+    let patientId = null;
+    let latestBpmData = { bpm1: 0, bpm2: 0, bpm3: 0, accuracy: 0 };
+
+    async function startAnalysis(){
+      const name = pname.value.trim();
+      const gender = pgender.value;
+      const age = page.value.trim();
+
+      if (!name || !gender || !age) {
+        alert("Please fill in all fields");
+        return;
+      }
+
+      try {
+        // Register patient in database
+        const response = await fetch('/register_patient', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, gender, age })
+        });
+
+        const result = await response.json();
+        
+        if (result.status === 'ok') {
+          patientId = result.patient_id;
+          document.getElementById("registerModal").style.display="none";
+
+          counter = 60;
+          timer = setInterval(async ()=>{
+            counter--;
+            document.getElementById("counter").innerText = counter;
+
+            if(counter === 0){
+              clearInterval(timer);
+              
+              // Save final prediction to database
+              const prediction = document.getElementById("predictionText").innerText;
+              
+              try {
+                const saveResponse = await fetch('/save_prediction', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    patient_id: patientId,
+                    prediction: prediction,
+                    accuracy: latestBpmData.accuracy,
+                    bpm1: latestBpmData.bpm1,
+                    bpm2: latestBpmData.bpm2,
+                    bpm3: latestBpmData.bpm3
+                  })
+                });
+
+                const saveResult = await saveResponse.json();
+                if (saveResult.status === 'ok') {
+                  alert("Final Prediction Stored in Database!");
+                } else {
+                  alert("Error saving prediction: " + saveResult.message);
+                }
+              } catch (err) {
+                console.error("Error saving prediction:", err);
+                alert("Error saving prediction to database");
+              }
+            }
+          },1000);
+        } else {
+          alert("Error registering patient: " + result.message);
+        }
+      } catch (err) {
+        console.error("Error registering patient:", err);
+        alert("Error connecting to server");
+      }
+    }
+
+    function restartAnalysis(){ location.reload(); }
+
+    async function openHistory(){
+      try {
+        const response = await fetch('/get_patients');
+        const result = await response.json();
+        
+        if (result.status === 'ok') {
+          let html="<tr><th>Name</th><th>Gender</th><th>Age</th><th>Time</th><th>Prediction</th><th>Accuracy</th></tr>";
+          
+          if (result.patients.length === 0) {
+            html += "<tr><td colspan='6' style='text-align:center'>No patient records found</td></tr>";
+          } else {
+            result.patients.forEach(p=>{
+              const timeStr = p.time !== 'N/A' ? new Date(p.time).toLocaleString() : 'N/A';
+              html+=`<tr><td>${p.name}</td><td>${p.gender}</td><td>${p.age}</td><td>${timeStr}</td><td>${p.prediction}</td><td>${p.accuracy.toFixed(2)}%</td></tr>`;
+            });
+          }
+          
+          historyTable.innerHTML=html;
+          historyModal.style.display="flex";
+        } else {
+          alert("Error loading history: " + result.message);
+        }
+      } catch (err) {
+        console.error("Error loading history:", err);
+        alert("Error connecting to server");
+      }
+    }
+
+    function closeHistory(){ historyModal.style.display="none"; }
+
+    // ✅ REALTIME DATA FETCH (YOUR ORIGINAL — UNCHANGED)
+    async function updateData() {
+      try {
+        const res = await fetch('/get_bpm');
+        if (!res.ok) return;
+
+        const json = await res.json();
+        const t = new Date().toLocaleTimeString();
+
+        const bpmArray = [
+          Number(json.bpm1 || 0),
+          Number(json.bpm2 || 0),
+          Number(json.bpm3 || 0)
+        ];
+
+        bpmArray.forEach((bpm, i) => {
+          const chart = charts[i];
+          chart.data.labels.push(t);
+          chart.data.datasets[0].data.push(bpm);
+
+          if (chart.data.labels.length > 30) {
+            chart.data.labels.shift();
+            chart.data.datasets[0].data.shift();
+          }
+          chart.update();
+        });
+
+        const predText = json.prediction || "Analyzing Nadi...";
+        document.getElementById('predictionText').textContent = predText;
+
+        const acc = Number(json.accuracy || 0);
+        accChart.data.datasets[0].data = [acc, Math.max(0, 100 - acc)];
+        accChart.update();
+
+        // Store latest BPM data for saving prediction
+        latestBpmData = {
+          bpm1: bpmArray[0],
+          bpm2: bpmArray[1],
+          bpm3: bpmArray[2],
+          accuracy: acc
+        };
+
+        document.getElementById('predictedInfo').textContent = predText;
+        document.getElementById('lastUpdate').textContent = t;
+
+        // Display Dosha Balance if available
+        if (json.dosha_balance) {
+          const doshaCard = document.getElementById('doshaCard');
+          doshaCard.style.display = 'block';
+          
+          const vata = json.dosha_balance.vata || 0;
+          const pitta = json.dosha_balance.pitta || 0;
+          const kapha = json.dosha_balance.kapha || 0;
+          
+          document.getElementById('vataPercent').textContent = vata.toFixed(1) + '%';
+          document.getElementById('pittaPercent').textContent = pitta.toFixed(1) + '%';
+          document.getElementById('kaphaPercent').textContent = kapha.toFixed(1) + '%';
+          
+          // Display interpretation if available
+          if (json.dosha_info) {
+            const interpretation = json.dosha_info.interpretation || {};
+            const dominant = json.dosha_info.dominant_dosha || 'Unknown';
+            
+            let interpretationHTML = `
+              <div style="margin-top: 10px;">
+                <strong style="color: #00ffff;">Dominant Dosha: ${dominant}</strong><br>
+                <div style="margin-top: 8px;">
+                  <strong>Description:</strong> ${interpretation.description || 'N/A'}<br>
+                  <strong>Imbalance:</strong> ${interpretation.imbalance || 'N/A'}<br>
+                  <strong>Recommendation:</strong> ${interpretation.recommendation || 'N/A'}
+                </div>
+              </div>
+            `;
+            document.getElementById('doshaInterpretation').innerHTML = interpretationHTML;
+          }
+        }
+
+        // Display data quality indicator
+        if (json.data_quality) {
+          const quality = json.data_quality;
+          const readingsCount = json.readings_count || 0;
+          if (quality === 'building' && readingsCount < 10) {
+            document.getElementById('predictedInfo').textContent = 
+              predText + ` (Collecting data: ${readingsCount}/30 readings)`;
+          }
+        }
+
+        // Analyze graph patterns and display dosha type from graphs
+        if (json.graph_dosha_analysis && charts[0].data.datasets[0].data.length >= 3) {
+          displayGraphDoshaAnalysis(json.graph_dosha_analysis);
+        }
+
+      } catch (err) {
+        console.warn('updateData error', err);
+      }
+    }
+
+    updateData();
+    setInterval(updateData, 1000);
+
+    // Create floating particles
+    function createParticles() {
+      const particlesContainer = document.getElementById('particles');
+      const particleCount = 30;
+
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 15 + 's';
+        particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+        particlesContainer.appendChild(particle);
+      }
+    }
+
+    // Initialize particles on page load
+    createParticles();
+
+    // Modal helpers: close button and safe show/hide
+    document.getElementById('closeRegister').addEventListener('click', function(){
+      document.getElementById('registerModal').style.display = 'none';
+    });
+
+    // Show register modal only when needed (modal is visible by default in markup for quick debug)
+    function showRegisterModal(){
+      document.getElementById('registerModal').style.display = 'flex';
+    }
+
+    // Ensure register modal is centered and responsive on small screens
+    window.addEventListener('resize', function(){
+      const modal = document.getElementById('registerModal');
+      if(window.innerWidth < 480){
+        modal.querySelector('.modal-content').style.width = '94%';
+        modal.querySelector('.modal-content').style.padding = '12px';
+      } else {
+        modal.querySelector('.modal-content').style.width = '';
+        modal.querySelector('.modal-content').style.padding = '';
+      }
+    });
+
+    // Function to display graph-based dosha analysis
+    function displayGraphDoshaAnalysis(analysis) {
+      const graphDoshaCard = document.getElementById('graphDoshaCard');
+      if (!analysis || analysis.dosha_type === 'Insufficient Data') {
+        graphDoshaCard.style.display = 'none';
+        return;
+      }
+
+      graphDoshaCard.style.display = 'block';
+
+      const doshaType = analysis.dosha_type;
+      const confidence = analysis.confidence || 0;
+      const interpretation = analysis.interpretation || {};
+      const patterns = analysis.patterns || {};
+
+      // Display dosha type with color coding
+      const doshaColors = {
+        'Vata': '#ff4d4d',
+        'Pitta': '#00ff99',
+        'Kapha': '#00ffff'
+      };
+      const color = doshaColors[doshaType] || '#00ffff';
+
+      document.getElementById('graphDoshaType').textContent = doshaType;
+      document.getElementById('graphDoshaType').style.color = color;
+      document.getElementById('graphDoshaPattern').textContent = `Pattern: ${interpretation.pattern_name || 'Unknown'}`;
+      document.getElementById('graphDoshaConfidence').textContent = `Confidence: ${confidence.toFixed(1)}%`;
+
+      // Display interpretation
+      let interpretationHTML = `
+        <div style="border-left: 3px solid ${color}; padding-left: 10px; margin-bottom: 10px;">
+          <strong style="color: ${color};">Characteristics:</strong> ${interpretation.characteristics || 'N/A'}<br>
+          <strong style="color: ${color};">Indications:</strong> ${interpretation.indications || 'N/A'}<br>
+          <strong style="color: ${color};">Recommendation:</strong> ${interpretation.recommendation || 'N/A'}
+        </div>
+      `;
+      document.getElementById('graphDoshaInterpretation').innerHTML = interpretationHTML;
+
+      // Display pattern details
+      if (patterns.vata && patterns.pitta && patterns.kapha) {
+        let detailsHTML = `
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px;">
+            <div style="background: rgba(255,77,77,0.1); padding: 8px; border-radius: 8px;">
+              <strong style="color: #ff4d4d;">Vata Sensor</strong><br>
+              Mean: ${patterns.vata.mean_bpm || 0} bpm<br>
+              Variability: ${(patterns.vata.variability * 100 || 0).toFixed(1)}%<br>
+              Pattern: ${patterns.vata.pattern_type || 'unknown'}
+            </div>
+            <div style="background: rgba(0,255,153,0.1); padding: 8px; border-radius: 8px;">
+              <strong style="color: #00ff99;">Pitta Sensor</strong><br>
+              Mean: ${patterns.pitta.mean_bpm || 0} bpm<br>
+              Variability: ${(patterns.pitta.variability * 100 || 0).toFixed(1)}%<br>
+              Pattern: ${patterns.pitta.pattern_type || 'unknown'}
+            </div>
+            <div style="background: rgba(0,255,255,0.1); padding: 8px; border-radius: 8px;">
+              <strong style="color: #00ffff;">Kapha Sensor</strong><br>
+              Mean: ${patterns.kapha.mean_bpm || 0} bpm<br>
+              Variability: ${(patterns.kapha.variability * 100 || 0).toFixed(1)}%<br>
+              Pattern: ${patterns.kapha.pattern_type || 'unknown'}
+            </div>
+          </div>
+        `;
+        document.getElementById('graphPatternDetails').innerHTML = detailsHTML;
+      }
+    }
+  </script>
+
+
+</body>
+</html>
